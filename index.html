@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width">
+   <title>JS Bin</title>
+   <style>
+      #moreHolder {
+         display: flex;
+         justify-content: space-around;
+         flex-wrap: wrap;
+      }
+      h2{
+         background:#0164a3;
+         color:#fff;
+         margin:0;
+         padding:5px;
+         height:30px;
+         text-align: center;
+      }
+      .box img{
+         height:calc(100% - 30px);
+         width:100%;
+      }
+
+      .box {
+         width: 25%;
+         height: 300px;
+         border: solid 1px gray;
+         border-radius: 5px;
+         margin: 50px;
+         overflow:hidden;
+      }
+   </style>
+</head>
+
+<body>
+   <div id="moreHolder">
+
+   </div>
+   <script src="js/jquery.min.js"></script>
+   <script>
+      $(document).ready(function () {
+         scrollLoading.init();
+
+         var windowHeight = $(window).height();
+         $(window).scroll(function (event) {
+            scrollLoading.pageScroll(event, windowHeight);
+         })
+      });
+
+      var scrollLoading = (function () {
+         this.lastScrollTop = 0;
+         var galleryData = [];
+         var page = 2;
+         var isDataAvailable = true;
+         var init = function () {
+            getJsonData(1);
+         }
+
+         var pageScroll = function (event, windowHeight) {
+
+            var scrollT = $(window).scrollTop();
+            if (scrollT > this.lastScrollTop) {
+               getCallOnScroll(windowHeight, this.lastScrollTop);
+            }
+            this.lastScrollTop = scrollT;
+         }
+
+         var getCallOnScroll = function (windowHeight, scrollTop) {
+            var documentHeight = $(document).height();
+            var ajaxHeight = 200;
+            if ((windowHeight + scrollTop + ajaxHeight) > documentHeight && isDataAvailable) {
+               ajaxHeight = ajaxHeight + documentHeight;
+               getJsonData(page);
+               page++;
+            }
+         }
+
+         /* get Json Data */
+         var getJsonData = function (pageNo) {
+            //loading.. true
+
+            var url = 'http://localhost:3000/posts';
+            if (pageNo) {
+               url = 'http://localhost:3000/posts' + '?_page=' + pageNo + '&_limit=9';
+            }
+            $.get(url, function (data) {
+               //loading.. false
+               galleryData.push(data);
+               var moreHolder = $('#moreHolder');
+               var dataHtml = '';
+               isDataAvailable = data.length? true : false;
+               for (var i = 0; i < data.length; i++) {
+                  dataHtml += '<div class="box"><h2>' + data[i].title + '</h2><img src="images/'+data[i].image+'" /></div>'
+               }
+               moreHolder.append(dataHtml);
+            }).fail(function (error) {
+               console.log(error)
+            })
+         }
+
+         return {
+            init: init,
+            getJsonData: getJsonData,
+            pageScroll: pageScroll
+         }
+      })();
+
+
+   </script>
+</body>
+
+</html>
